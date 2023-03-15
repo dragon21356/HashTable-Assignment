@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TABLESIZE 37
+#define TABLESIZE 5
 #define PRIME     13
 
 enum Marker {EMPTY,USED};
@@ -80,27 +80,39 @@ int main()
 
 int HashInsert(int key, HashSlot hashTable[])
 {
+    int count = 0;
     int index = hash(key);
 
-    if (hashTable[index].key == key){
-        return -1;
+    for(count;count<TABLESIZE;count++){
+        if(hashTable[count].key == key){
+            return -1;
+        }
     }
 
     if (hashTable[index].indicator == 0){
         hashTable[index].key = key;
         hashTable[index].indicator = 1;
     }
-    else if(hashTable[index].indicator == 1){  //Need to place the object somewhere after where it is supposed to be placed instead of parsing from the start
+    else if(hashTable[index].indicator == 1){ 
         int i = 0;
-        for (i; i<TABLESIZE; i++){
-            if(hashTable[i].indicator == 0){
+        int temp = index;
+        while (hashTable[temp].next != -1) {
+            temp = hashTable[temp].next;
+        }
+        for (i = index + 1; i < TABLESIZE; i++) {
+            if (hashTable[i].indicator == 0) {
+                hashTable[temp].next = i;
                 hashTable[i].key = key;
                 hashTable[i].indicator = 1;
-                hashTable[index].next = i;
-                return i;        
+                return i;
             }
-            else{
-                continue;
+        }
+        for (i = 0; i < index; i++) {
+            if (hashTable[i].indicator == 0) {
+                hashTable[temp].next = i;
+                hashTable[i].key = key;
+                hashTable[i].indicator = 1;
+                return i;
             }
         }
         return 1000000000;
@@ -114,5 +126,23 @@ int HashInsert(int key, HashSlot hashTable[])
 
 int HashFind(int key, HashSlot hashTable[])
 {
- // Write your code here
+    int index = hash(key);
+
+    if(hashTable[index].indicator == 0){
+        return -1;
+    }
+    else if(hashTable[index].key == key){
+        return index;
+    }
+    else if(hashTable[index].next != -1){
+        if(hashTable[hashTable[index].next].key == key){
+            return hashTable[index].next;
+        }
+        else{
+            return -1;
+        }
+    }
+    else{ 
+        return -1;
+    }
 }
