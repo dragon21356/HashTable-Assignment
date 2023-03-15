@@ -1,3 +1,3 @@
-# HashTable-Assignment-1
+# HashTable-Assignment
 
 Coalesced Hashing Assignment Code
