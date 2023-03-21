@@ -83,32 +83,144 @@ int hash2(int key)
     return (key % PRIME) + 1;
 }
 
-int HashInsert(int key, HashSlot hashTable[]) {
-    int hash = hash1(key);
-    int hash2val = hash2(key);
-    int comparisons = 0;
+#include <stdio.h>
+#include <stdlib.h>
 
-    while (hashTable[hash].indicator == USED) {  // keep probing until an empty or deleted slot is found
-        if (hashTable[hash].key == key) {  // check for duplicates
-            return -1;
+#define TABLESIZE 37
+#define PRIME     13
+
+enum Marker {EMPTY,USED,DELETED};
+
+typedef struct _slot{
+    int key;
+    enum Marker indicator;
+} HashSlot;
+
+int HashInsert(int key, HashSlot hashTable[]);
+int HashDelete(int key, HashSlot hashTable[]);
+
+
+int hash1(int key);
+int hash2(int key);
+
+int main()
+{
+    int opt;
+    int i;
+    int key;
+    int comparison;
+    HashSlot hashTable[TABLESIZE];
+
+    for(i=0;i<TABLESIZE;i++){
+        hashTable[i].indicator = EMPTY;
+        hashTable[i].key = 0;
+    }
+
+    printf("============= Hash Table ============\n");
+    printf("|1. Insert a key to the hash table  |\n");
+    printf("|2. Delete a key from the hash table|\n");
+    printf("|3. Print the hash table            |\n");
+    printf("|4. Quit                            |\n");
+    printf("=====================================\n");
+    printf("Enter selection: ");
+    scanf("%d",&opt);
+    while(opt>=1 && opt <=3){
+        switch(opt){
+        case 1:
+            printf("Enter a key to be inserted:\n");
+            scanf("%d",&key);
+            comparison = HashInsert(key,hashTable);
+            if(comparison <0)
+                printf("Duplicate key\n");
+            else if(comparison < TABLESIZE)
+                printf("Insert: %d Key Comparisons: %d\n",key, comparison);
+            else
+                printf("Key Comparisons: %d. Table is full.\n",comparison);
+            break;
+        case 2:
+            printf("Enter a key to be deleted:\n");
+            scanf("%d",&key);
+            comparison = HashDelete(key,hashTable);
+            if(comparison <0)
+                printf("%d does not exist.\n", key);
+            else if(comparison <= TABLESIZE)
+                printf("Delete: %d Key Comparisons: %d\n",key, comparison);
+            else
+                printf("Error\n");
+            break;
+        case 3:
+            for(i=0;i<TABLESIZE;i++) printf("%d: %d %c\n",i, hashTable[i].key,hashTable[i].indicator==DELETED?'*':' ');
+            break;
         }
-        hash = (hash + hash2val) % TABLESIZE;
-        comparisons++;
-        if (comparisons >= TABLESIZE) {  // table is full
-            return comparisons;
+        printf("Enter selection: ");
+        scanf("%d",&opt);
+    }
+    return 0;
+}
+
+int hash1(int key)
+{
+    return (key % TABLESIZE);
+}
+
+int hash2(int key)
+{
+    return (key % PRIME) + 1;
+}
+
+int HashInsert(int key, HashSlot hashTable[]) {
+    int hash = hash1(key);          //declare variables
+    int step = hash2(key);
+    int comparison = hash;          //declare a variable to compare the hash value with
+    int counter = 0;               //declare a counter to count the number of comparisons
+    int multiplier = 1;            //declare a multiplier to multiply the step size by (1,2,3....)
+    int temp = -1;                //declare a variable to check if the node is deleted or not (because this case is special)
+
+    while(counter < TABLESIZE && comparison != temp ){         //counter is only till TABLESIZE due to the limit of the question and only as long as the node isnt a deleted node
+        if(hashTable[comparison].indicator == USED){         //check case for if the node is used
+            counter++;                                  //increment counter cuz you check it
+            if(hashTable[comparison].key == key){
+                return -1;                              //if duplicate then return -1 for duplicate value (only used cases can return a duplicate value)
+            }
+        }
+
+        else if(hashTable[comparison].indicator == EMPTY){       //if it is empty, then simply insert key and change the indicator value to used
+            hashTable[comparison].key = key;
+            hashTable[comparison].indicator = USED;
+            return counter;
+        }
+
+        else if(hashTable[comparison].indicator == DELETED  && temp == -1){    //if it is deleted, then let the temporary value be the hash value of the key in order to exit the loop and task differently, check for temp == -1 because the node needs to be the selected node and not just any other deleted node
+            temp = comparison;
+        }
+
+        comparison = (key+multiplier*step)%TABLESIZE;       //iteration formula for the loop, passed through the tablesize to get the hash value for the table after taking into account the step size through the multiplier
+        multiplier++;   //increment multiplier from 1 to 2
+
+        if(hashTable[comparison].indicator == EMPTY && temp != -1){    //in the event the first node is a duplicate, break out of the loop for the following if block when you find an empty cell
+            break;
+        }
+    } 
+
+    if(temp != -1){            //parse in the info in the event the cell is deleted
+        hashTable[temp].key = key;      //change key value
+        hashTable[temp].indicator = USED;   //change key indicator
+
+        if(counter == TABLESIZE){  //in the event the counter is = tablesize, meaning every slot is checked, return counter -1 
+            return counter-1;
+        }
+        else{
+            return counter;    //otherwise return the counter
         }
     }
 
-    hashTable[hash].key = key;  // insert the key into an empty or deleted slot
-    hashTable[hash].indicator = USED;
-    return comparisons;
+    return TABLESIZE;    //if the while loop is not executed, or if the table is full, return tablesize to indicate that the table is fulll
 }
 
-// This function takes a key and a hash table and returns the number of key comparisons made during deletion
 int HashDelete(int key, HashSlot hashTable[]) {
     int comparisons = 0;        // Initialize the key comparisons counter to 0
-    int index = hash1(key);     // Compute the initial hash index using hash function 1
-    int step = hash2(key);      // Compute the hash step using hash function 2
+    int index = hash1(key);     // Calculate the initial hash index using hash function 1
+    int step = hash2(key);      // Calculate the hash step using hash function 2
 
     // Continue probing until an empty slot is reached
     while (hashTable[index].indicator != EMPTY) {
@@ -127,3 +239,6 @@ int HashDelete(int key, HashSlot hashTable[]) {
     }
     return -1;  // The key was not found in the hash table
 }
+
+
+
