@@ -83,14 +83,47 @@ int hash2(int key)
     return (key % PRIME) + 1;
 }
 
-int HashInsert(int key, HashSlot hashTable[])
-{
-   //Write your code here
+int HashInsert(int key, HashSlot hashTable[]) {
+    int hash = hash1(key);
+    int hash2val = hash2(key);
+    int comparisons = 0;
 
+    while (hashTable[hash].indicator == USED) {  // keep probing until an empty or deleted slot is found
+        if (hashTable[hash].key == key) {  // check for duplicates
+            return -1;
+        }
+        hash = (hash + hash2val) % TABLESIZE;
+        comparisons++;
+        if (comparisons >= TABLESIZE) {  // table is full
+            return comparisons;
+        }
+    }
+
+    hashTable[hash].key = key;  // insert the key into an empty or deleted slot
+    hashTable[hash].indicator = USED;
+    return comparisons;
 }
 
-int HashDelete(int key, HashSlot hashTable[])
-{
-   //Write your code here
+// This function takes a key and a hash table and returns the number of key comparisons made during deletion
+int HashDelete(int key, HashSlot hashTable[]) {
+    int comparisons = 0;        // Initialize the key comparisons counter to 0
+    int index = hash1(key);     // Compute the initial hash index using hash function 1
+    int step = hash2(key);      // Compute the hash step using hash function 2
 
+    // Continue probing until an empty slot is reached
+    while (hashTable[index].indicator != EMPTY) {
+        comparisons++;          // Increment the key comparisons counter for each probed slot
+        // If a used slot with the matching key is found, mark it as deleted and return the number of key comparisons made
+        if (hashTable[index].key == key && hashTable[index].indicator == USED) {
+            hashTable[index].indicator = DELETED;
+            return comparisons;
+        }
+        // Move to the next slot based on the computed step
+        index = (index + step) % TABLESIZE;
+        // If all slots have been probed and the key has not been found, break out of the loop and return -1
+        if (comparisons == TABLESIZE) {
+            break;  
+        }
+    }
+    return -1;  // The key was not found in the hash table
 }
