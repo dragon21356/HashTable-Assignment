@@ -118,8 +118,6 @@ int main()
     return 0;
 }
 
-
-
 int HashInsert(HashTable* Q1Ptr, int key)
 {
     int index = 0;
@@ -179,7 +177,9 @@ int HashInsert(HashTable* Q1Ptr, int key)
 int HashDelete(HashTable* Q1Ptr, int key)
 {
     int index = 0;
-    ListNode *newNode;
+    ListNode *current;
+    ListNode *temp1;
+    ListNode *temp2;
 
 
     if (Q1Ptr->hSize == 0){
@@ -189,16 +189,47 @@ int HashDelete(HashTable* Q1Ptr, int key)
     
     if (HashSearch(*Q1Ptr, key) != NULL && HashSearch(*Q1Ptr,key)->key == key){  //check for duplicate
         
-        return 0;
-    }
-
-    else{
-       
         index = Hash(key,Q1Ptr->hSize);
     }
 
+    else{
+        return 0;
+    }
+
+    if(Q1Ptr->Table[index].size == 0){
+        return 0;
+    }
+    else{
+        current = HashSearch(*Q1Ptr,key);
+
+        if(Q1Ptr->Table[index].size == 1){
+            free(Q1Ptr->Table[index].head);
+
+            Q1Ptr->Table[index].size--;
+            Q1Ptr->nSize--;
+            
+            return 1;
+        }
+
+        else{
+            temp1 = current->pre;
+            temp2 = current->next;
+            
+            temp1->next = temp2;
+            temp2->pre = temp1;
+
+            free(current);
+
+            Q1Ptr->Table[index].size--;
+            Q1Ptr->nSize--;
+
+            return 1;
+        }
+    }
     
+    return 0;
 }
+
 
 int Hash(int key,int hSize)
 {
