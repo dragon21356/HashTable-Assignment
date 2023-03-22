@@ -122,13 +122,82 @@ int main()
 
 int HashInsert(HashTable* Q1Ptr, int key)
 {
-    //Write your code here
+    int index = 0;
+    ListNode *newNode;
 
+
+    if (Q1Ptr->hSize == 0){
+    
+        return 0;
+    }
+    
+    if (HashSearch(*Q1Ptr, key) != NULL && HashSearch(*Q1Ptr,key)->key == key){  //check for duplicate
+        
+        return 0;
+    }
+
+    else{
+       
+        index = Hash(key,Q1Ptr->hSize);
+    }
+  
+
+    if (Q1Ptr->Table[index].size == 0){                             //if there is no linked list meaning this is the first key in the bucket
+        newNode = (ListNode *)malloc(sizeof(ListNode));
+        newNode->key = key;
+        newNode->next = Q1Ptr->Table[index].head;
+        Q1Ptr->Table[index].head = newNode;
+
+        Q1Ptr->Table[index].size++;
+        Q1Ptr->nSize++;
+
+        return 1;
+    }
+    else{
+        newNode = (ListNode *)malloc(sizeof(ListNode));        //if there is already a value there
+        newNode->key = key;                                    //initialise the newnode
+        newNode->next = NULL;
+        newNode->pre = NULL;
+
+        newNode->next = Q1Ptr->Table[index].head;               //set the newnode's next pointer to point to the current head value
+
+        if (Q1Ptr->Table[index].head != NULL) {                 //if the head pointer is pointing to something, meaning there is a linked list with 1 element
+            Q1Ptr->Table[index].head->pre = newNode;            //set the the current head value's previous pointer to point to the newnode
+        }
+        
+        Q1Ptr->Table[index].head = newNode;                      //make the head pointer point to the newnode instead of the current node
+        
+        Q1Ptr->Table[index].size++;
+        Q1Ptr->nSize++;
+
+        return 1;
+    }
+
+    return 0;
 }
 
 int HashDelete(HashTable* Q1Ptr, int key)
 {
-    //Write your code here
+    int index = 0;
+    ListNode *newNode;
+
+
+    if (Q1Ptr->hSize == 0){
+    
+        return 0;
+    }
+    
+    if (HashSearch(*Q1Ptr, key) != NULL && HashSearch(*Q1Ptr,key)->key == key){  //check for duplicate
+        
+        return 0;
+    }
+
+    else{
+       
+        index = Hash(key,Q1Ptr->hSize);
+    }
+
+    
 }
 
 int Hash(int key,int hSize)
