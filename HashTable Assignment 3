@@ -200,33 +200,25 @@ int HashDelete(HashTable* Q1Ptr, int key)
         return 0;
     }
     else{
-        current = HashSearch(*Q1Ptr,key);
-
-        if(Q1Ptr->Table[index].size == 1){
-            free(Q1Ptr->Table[index].head);
-
-            Q1Ptr->Table[index].size--;
-            Q1Ptr->nSize--;
-            
-            return 1;
-        }
-
-        else{
-            temp1 = current->pre;
-            temp2 = current->next;
-            
-            temp1->next = temp2;
-            temp2->pre = temp1;
-
-            free(current);
-
-            Q1Ptr->Table[index].size--;
-            Q1Ptr->nSize--;
-
-            return 1;
+        while(current != NULL){
+            if(current->key == key){
+                if(current->pre == NULL){
+                    Q1Ptr->Table[index].head = current->next;
+                }
+                else{
+                    current->pre->next = current->next;
+                }
+                if(current->next != NULL){
+                    current->next->pre = current->pre;
+                }
+                free(current);
+                Q1Ptr->Table[index].size--;
+                Q1Ptr->nSize--;
+                return 1;
+            }
+            current = current->next;
         }
     }
-    
     return 0;
 }
 
